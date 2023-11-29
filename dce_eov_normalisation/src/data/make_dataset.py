@@ -90,6 +90,6 @@ def create_input_target_dataset(
         }
     )
 
-    ss1_mode = get_reference_based_mode(data_folder, mode, location, turbine)
-    model_input, model_target = create_input_output(synced_data, ss1_mode)
+    mode_ = get_reference_based_mode(data_folder, mode, location, turbine)
+    model_input, model_target = create_input_output(synced_data, mode_)
     return model_input, model_target
