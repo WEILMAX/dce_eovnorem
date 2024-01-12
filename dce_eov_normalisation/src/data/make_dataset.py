@@ -1,7 +1,24 @@
 import pandas as pd
 from src.data.utils import *
 from src.data.preprocessing import *
+import datetime
 
+
+def get_big_data(start, end, owi_api, location, metrics, days=15):
+    new_start = start
+    all_data = pd.DataFrame()
+    middle = start + datetime.timedelta(days=days)
+    while end > middle:
+        data_ = owi_api.query((new_start, middle), location=location, metrics = metrics)
+        new_start = middle
+        middle = new_start + datetime.timedelta(days=days)
+        all_data = pd.concat([all_data, data_])
+    if end < middle:
+        data_ = owi_api.query((new_start, end), location=location, metrics = metrics)
+        all_data = pd.concat([all_data, data_])
+    duplicated_indices = all_data.index.duplicated(keep='first')
+    all_data_unique = all_data[~duplicated_indices]
+    return all_data_unique
 
 def get_turbine_data(data_folder: str, location: str, turbine: str) -> pd.DataFrame:
     """Get the turbine data from the location folgder in the raw data folder.
@@ -54,23 +71,21 @@ def get_mvbc_data(data_folder: str, location: str) -> pd.DataFrame:
         ) from e
     
 
-def create_input_target_dataset(
+def create_input_data(
     data_folder: str,
     location: str,
     turbine: str,
-    mode: str
-    ) -> tuple[pd.DataFrame, pd.Series]:
+    ) -> pd.DataFrame:
     """_summary_
 
     Args:
         data_folder (str): _description_
         location (str): _description_
         turbine (str): _description_
-        mode (str): _description_
 
     Returns:
-        tuple[pd.DataFrame, pd.Series]: _description_
-    """
+        pd.DataFrame: _description_
+    """    
     turbine_data_ = pd.read_parquet(os.path.join(data_folder, 'raw', location, location + turbine + '.parquet'))
     scada_means = select_mean_SCADA(turbine_data_)
     scada_means_selected = scada_means.loc[:, scada_means.isna().sum() < 0.05 * scada_means.shape[0]]
@@ -89,6 +104,27 @@ def create_input_target_dataset(
         'mvbc_data_selected': mvbc_data
         }
     )
+    return synced_data
+
+
+def create_input_target_dataset(
+    data_folder: str,
+    location: str,
+    turbine: str,
+    mode: str
+    ) -> tuple[pd.DataFrame, pd.Series]:
+    """_summary_
+
+    Args:
+        data_folder (str): _description_
+        location (str): _description_
+        turbine (str): _description_
+        mode (str): _description_
+
+    Returns:
+        tuple[pd.DataFrame, pd.Series]: _description_
+    """
+    synced_data = create_input_data(data_folder, location, turbine)
 
     mode_ = get_reference_based_mode(data_folder, mode, location, turbine)
     model_input, model_target = create_input_output(synced_data, mode_)
