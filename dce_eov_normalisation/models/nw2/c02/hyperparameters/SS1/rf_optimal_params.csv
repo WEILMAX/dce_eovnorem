@@ -1,2 +1,5 @@
 ,optimal_params
-SS1,
+max_depth,11.0
+min_samples_leaf,5.0
+min_samples_split,3.0
+n_estimators,339.0

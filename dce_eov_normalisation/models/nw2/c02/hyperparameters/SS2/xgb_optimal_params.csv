@@ -1,2 +1,5 @@
 ,optimal_params
-SS2,
+colsample_bytree,0.5342968900539353
+learning_rate,0.03673522279051134
+max_depth,4.0
+n_estimators,766.0

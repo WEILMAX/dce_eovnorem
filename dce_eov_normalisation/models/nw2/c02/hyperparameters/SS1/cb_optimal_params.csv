@@ -1,8 +1,5 @@
 ,optimal_params
-bagging_temperature,0.06713752587868782
-border_count,71.0
-depth,13.0
-iterations,387.0
-l2_leaf_reg,8.65122016543748
-learning_rate,0.01645968746254838
-random_strength,10.542196154932142
+depth,6.0
+iterations,549.0
+l2_leaf_reg,4.606678901786269
+learning_rate,0.01894926832887639

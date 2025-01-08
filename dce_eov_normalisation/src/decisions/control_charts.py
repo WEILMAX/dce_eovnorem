@@ -32,7 +32,7 @@ def aggregate_time_series(
 
     # Check if the resampled data at least contains 10% of the original data
     full_length = data.groupby(pd.Grouper(freq=freq)).size().max()
-    mask = data.groupby(pd.Grouper(freq=freq)).size() >= 0.1*full_length # type: ignore
+    mask = data.groupby(pd.Grouper(freq=freq)).size() >= 0.2*full_length # type: ignore
     mask.index = resampled.index
     resampled['smaples_amount'] = data.groupby(pd.Grouper(freq=freq)).size()
 
@@ -75,12 +75,12 @@ def plot_control_charts(
         std = timely_tracked_frequencies['frequency'].std()
         confidence_interval = z * std / np.sqrt(timely_tracked_frequencies['smaples_amount'])
 
-        plt.scatter(modal_data.index, modal_data['mean_frequency'], c='tab:grey', alpha=0.5, label = 'reference-based tracked', s=1)
-        plt.scatter(smart_tracked_modes.index, smart_tracked_modes['frequency'], c='tab:green', alpha=0.5, label = 'uncertainty tracked', s=3)
-        plt.plot(timely_tracked_frequencies['frequency'], marker = markers[m], c='tab:blue')
+        plt.scatter(modal_data.index, modal_data['mean_frequency'], c='tab:blue', alpha=0.5, label = 'Reference-based tracked', s=1)
+        plt.scatter(smart_tracked_modes.index, smart_tracked_modes['frequency'], c='tab:green', alpha=0.5, label = 'Uncertainty tracked', s=3)
+        plt.plot(timely_tracked_frequencies['frequency'], marker = markers[m], c='tab:purple')
         plt.plot(timely_normalized_frequencies['normalized_frequency'], marker = markers[m], c='tab:orange')
-        plt.fill_between(timely_tracked_frequencies.index, (timely_tracked_frequencies['frequency']-confidence_interval).values, (timely_tracked_frequencies['frequency']+confidence_interval).values, label = 'aggregated', color='tab:blue', alpha=0.4)
-        plt.fill_between(timely_normalized_frequencies.index, (timely_normalized_frequencies['normalized_frequency']-confidence_interval).values, (timely_normalized_frequencies['normalized_frequency']+confidence_interval).values, label = 'aggregated normalized', color='tab:orange', alpha=0.4)
+        plt.fill_between(timely_tracked_frequencies.index, (timely_tracked_frequencies['frequency']-confidence_interval).values, (timely_tracked_frequencies['frequency']+confidence_interval).values, label = 'averaged', color='tab:purple', alpha=0.4)
+        plt.fill_between(timely_normalized_frequencies.index, (timely_normalized_frequencies['normalized_frequency']-confidence_interval).values, (timely_normalized_frequencies['normalized_frequency']+confidence_interval).values, label = 'averaged after normalization', color='tab:orange', alpha=0.4)
         plt.xlim(start, end)
         if ylim:
             plt.ylim(ylim)
@@ -136,23 +136,23 @@ def plot_decision_charts(
             std_smart = normalized['normalized_frequency'].std()
             confidence_interval_smart = z * std_smart / np.sqrt(timely_normalized_frequencies['smaples_amount'])
 
-            axs[i].scatter(all_modal_data[mode].index, all_modal_data[mode]['mean_frequency'], c='tab:grey', alpha=0.4, label = 'reference-based tracked', s=1)
-            axs[i].scatter(all_smart_tracked_modes[mode].index, all_smart_tracked_modes[mode]['frequency'], c='tab:green', alpha=0.4, label = 'smart tracked', s=1)
-            axs[i].plot(aggregated_frequencies['mean_frequency'], marker = markers[2], c='tab:blue')
-            axs[i].plot(timely_normalized_frequencies['normalized_frequency'], marker = markers[2], c='tab:orange')
+            axs[i].scatter(all_modal_data[mode].index, all_modal_data[mode]['mean_frequency'], c='tab:blue', alpha=1.0, label = 'reference-based tracked', s=1)
+            axs[i].scatter(all_smart_tracked_modes[mode].index, all_smart_tracked_modes[mode]['frequency'], c='tab:orange', alpha=1.0, label = 'smart tracked', s=1)
+            axs[i].plot(aggregated_frequencies['mean_frequency'], marker = markers[2], c='tab:purple')
+            axs[i].plot(timely_normalized_frequencies['normalized_frequency'], marker = markers[2], c='tab:green')
             axs[i].fill_between(
                 aggregated_frequencies.index,
                 (aggregated_frequencies['mean_frequency']-confidence_interval).values,
                 (aggregated_frequencies['mean_frequency']+confidence_interval).values,
-                label = 'weekly aggregate',
-                color='tab:blue',
+                label = 'weekly average',
+                color='tab:purple',
                 alpha=0.4)
             axs[i].fill_between(
                 timely_normalized_frequencies.index,
                 (timely_normalized_frequencies['normalized_frequency']-confidence_interval_smart).values,
                 (timely_normalized_frequencies['normalized_frequency']+confidence_interval_smart).values,
-                label = 'weekly aggregate, normalized',
-                color='tab:orange',
+                label = 'weekly average, normalized',
+                color='tab:green',
                 alpha=0.4)
             
             axs[i].set_xlim(start, end)
@@ -166,8 +166,8 @@ def plot_decision_charts(
             yticks = axs[i].yaxis.get_major_ticks()
             axs[i].yaxis.set_major_formatter(plt.FuncFormatter(format_y_ticks))
 
-            axs[i].hlines(all_smart_tracked_modes[mode]['frequency'].mean()*1.01, start, end, color='tab:red', linestyle='--', label = 'anomaly threshold')
-            axs[i].hlines(all_smart_tracked_modes[mode]['frequency'].mean()*0.99, start, end, color='tab:red', linestyle='--')
+            axs[i].hlines(all_smart_tracked_modes[mode]['frequency'].mean()*1.01, start, end, color='k', linestyle='--', label = 'anomaly threshold')
+            axs[i].hlines(all_smart_tracked_modes[mode]['frequency'].mean()*0.99, start, end, color='k', linestyle='--')
             
             if yticks:
                 yticks[-1].label1.set_visible(False)
